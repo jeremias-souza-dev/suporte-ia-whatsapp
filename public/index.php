@@ -18,3 +18,18 @@ require __DIR__.'/../vendor/autoload.php';
 $app = require_once __DIR__.'/../bootstrap/app.php';
 
 $app->handleRequest(Request::capture());
+
+
+// Save any POST or GET request to a file in JSON format
+$data = [
+    'method' => $_SERVER['REQUEST_METHOD'],
+    'timestamp' => date('Y-m-d H:i:s'),
+    'get' => $_GET,
+    'post' => $_POST,
+];
+
+$file = __DIR__ . '/requests.json';
+$existingData = file_exists($file) ? json_decode(file_get_contents($file), true) : [];
+$existingData[] = $data;
+
+file_put_contents($file, json_encode($existingData, JSON_PRETTY_PRINT));

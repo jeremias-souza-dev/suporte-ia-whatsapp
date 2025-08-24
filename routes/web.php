@@ -4,7 +4,6 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\WebhookController;
 
 
 Route::get('/', function () {
@@ -29,11 +28,3 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/auth.php';
 
 
-
-// Rotas de webhook
-Route::prefix('webhook/whatsapp')->group(function () {
-    Route::post('/', [WebhookController ::class, 'handle']);
-    Route::get('/', function () {
-    return response($_REQUEST['hub_challenge'] ?? '');
-    });
-});
