@@ -8,11 +8,15 @@ class WhatsAppService
 {
     protected $token;
     protected $phoneId;
+    protected $apiPhoneNumber;
+    protected $apiVersion;
 
     public function __construct()
     {
-        $this->token = env('WHATSAPP_TOKEN');
-        $this->phoneId = env('WHATSAPP_PHONE_ID');
+        $this->token = config('whatsapp.token');
+        $this->phoneId = config('whatsapp.phone_id');
+        $this->apiPhoneNumber = config('whatsapp.api_phone_number'); 
+        $this->apiVersion = config('whatsapp.api_version');
     }
 
     public function sendMessageText($recipientNumber, $text, $previewUrl = true)
@@ -30,12 +34,17 @@ class WhatsAppService
 
         return $this->sendRequest($payload);
     }
-    
+
+
     protected function sendRequest($data)
     {
-        $url = "https://graph.facebook.com/v18.0/{$this->phoneId}/messages";
-        return Http::withToken($this->token)
-            ->post($url, $data)
-            ->json();
+        $url = "https://graph.facebook.com/{$this->apiVersion}/{$this->phoneId}/messages";
+
+        $response = Http::withHeaders([
+            "Authorization" => "Bearer {$this->token}",
+            "Content-Type" => "application/json",
+        ])->post($url, $data);
+
+        return $response->json();
     }
 }
