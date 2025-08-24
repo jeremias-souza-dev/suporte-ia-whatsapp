@@ -1,10 +1,11 @@
 <?php
-
 namespace App\Services;
+
+use App\Models\WebhookEvent;
 
 class WhatsAppWebhookProcessor
 {
-    public function process(array $webhookData): array
+    public function process(array $webhookData): WebhookEvent
     {
         $result = [
             'event_type' => null,
@@ -14,6 +15,10 @@ class WhatsAppWebhookProcessor
             'api_phone_number' => null,
             'message' => null,
             'interactive_id' => null,
+            'status' => null,
+            'status_id' => null,
+            'conversation' => null,
+            'message_id' => null,
         ];
 
         $entry = $webhookData['entry'][0] ?? null;
@@ -21,9 +26,6 @@ class WhatsAppWebhookProcessor
         $changesValue = $changes['value'] ?? null;
         $contacts = $changesValue['contacts'][0] ?? null;
 
-        if (isset($entry['id'])) {
-            $result['id'] = $entry['id'];
-        }
         if (isset($contacts['profile']['name'])) {
             $result['name'] = $contacts['profile']['name'];
         }
@@ -46,32 +48,27 @@ class WhatsAppWebhookProcessor
 
             switch ($message['type']) {
                 case 'text':
-                    if (isset($message['text']['body'])) {
-                        $result['event_type'] = 'message_text';
-                        $result['message'] = $message['text']['body'];
-                    }
+                    $result['event_type'] = 'message_text';
+                    $result['message'] = $message['text']['body'] ?? null;
                     break;
                 case 'button':
-                    if (isset($message['button']['paylWebhookController oad'])) {
-                        $result['event_type'] = 'message_button';
-                        $result['message'] = $message['button']['payload'];
-                    }
+                    $result['event_type'] = 'message_button';
+                    $result['message'] = $message['button']['payload'] ?? null;
                     break;
                 case 'interactive':
-                    if (isset($message['interactive']['button_reply']['title'])) {
+                    if (isset($message['interactive']['button_reply'])) {
                         $result['event_type'] = 'message_button';
-                        $result['message'] = $message['interactive']['button_reply']['title'];
-                        $result['interactive_id'] = $message['interactive']['button_reply']['id'];
-                    } elseif (isset($message['interactive']['list_reply']['id'])) {
+                        $result['message'] = $message['interactive']['button_reply']['title'] ?? null;
+                        $result['interactive_id'] = $message['interactive']['button_reply']['id'] ?? null;
+                    } elseif (isset($message['interactive']['list_reply'])) {
                         $result['event_type'] = 'interactive';
-                        $result['interactive'] = $message['interactive']['list_reply'];
-                        $result['message'] = $message['interactive']['list_reply']['title'];
-                        $result['interactive_id'] = $message['interactive']['list_reply']['id'];
+                        $result['message'] = $message['interactive']['list_reply']['title'] ?? null;
+                        $result['interactive_id'] = $message['interactive']['list_reply']['id'] ?? null;
                     }
                     break;
             }
         }
-        
-        return $result;
+
+        return WebhookEvent::create($result);
     }
 }
