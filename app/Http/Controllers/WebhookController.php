@@ -21,8 +21,8 @@ class WebhookController extends Controller
             $mensagem = $result['message'];
 
             $conversation = Conversation::firstOrCreate(
-                ['user_id' => $celular, 'status' => 'active'],
-                ['last_message_at' => now()]
+                ['phone' => $celular],
+                ['last_message_at' => now(), 'status' => 'active']
             );
 
             $conversation->messages()->create([
