@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\WhatsAppWebhookProcessor; 
+use App\Models\Conversation;
+use App\Models\Message;
 
 class WebhookController extends Controller
 {
@@ -13,6 +15,22 @@ class WebhookController extends Controller
 
         $processor = new WhatsAppWebhookProcessor();
         $result = $processor->process($webhookData);
+
+        if ($result['event_type'] == 'message_text' && isset($result['celular'])) {
+            $celular = $result['celular'];
+            $mensagem = $result['message'];
+
+            $conversation = Conversation::firstOrCreate(
+                ['user_id' => $celular, 'status' => 'active'],
+                ['last_message_at' => now()]
+            );
+
+            $conversation->messages()->create([
+                'sender' => 'user',
+                'content' => $mensagem,
+                'type' => 'text',
+            ]);
+        }
 
         return response()->json(['status' => 'ok']);
     }
