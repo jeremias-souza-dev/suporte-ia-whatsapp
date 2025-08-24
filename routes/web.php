@@ -31,3 +31,8 @@ require __DIR__.'/auth.php';
 use App\Http\Controllers\WebhookController;
 
 Route::post('/webhook/whatsapp', [WebhookController::class, 'handle']);
+
+
+Route::get('/webhook/whatsapp', function () {
+        echo $_REQUEST['hub_challenge'] ?? '';
+});
