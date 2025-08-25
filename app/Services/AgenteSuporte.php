@@ -26,7 +26,6 @@ class AgenteSuporte
         $aiResponse = $this->geminiService->generateText($prompt);
 
         if ($aiResponse) {
-
             $conversation->messages()->create([
                 'sender' => 'IA',
                 'content' => $aiResponse,
@@ -39,14 +38,21 @@ class AgenteSuporte
 
     private function buildPromptFromHistory($history): string
     {
-        $prompt = "Você é um agente de suporte via WhatsApp. Responda de forma clara, educada e concisa, sem se identificar como IA. Mantenha o tom profissional e direto. Leve em consideração o histórico da conversa para dar a melhor resposta.\n\nHistórico da conversa:\n\n";
+        $atendimento = ['Suporte - TI'];
+        $prompt = "Você é JereIA, um agente de suporte via WhatsApp. Sempre inicie suas respostas com 'JereIA:'. "
+            . "Seu único objetivo é coletar informações sobre problemas técnicos relacionados a: " . implode(', ', $atendimento) . ". "
+            . "Nunca ofereça soluções, não tente adivinhar respostas, e não discuta assuntos fora deste escopo. "
+            . "Se algo for duvidoso ou estiver fora do seu conhecimento, peça mais informações ou diga: "
+            . "'Desculpe, só posso ajudar com questões técnicas relacionadas a Suporte - TI. Por favor, me forneça mais detalhes técnicos.'. "
+            . "Responda de forma clara, educada, extremamente concisa, e sempre profissional.\n\n"
+            . "Histórico da conversa:\n\n";
 
         foreach ($history as $message) {
             $sender = ($message->sender === 'user') ? 'Cliente' : 'Você';
             $prompt .= "$sender: {$message->content}\n";
         }
 
-        $prompt .= "\nSua resposta:";
+        $prompt .= "\nSua resposta (máximo 2 frases curtas, só sobre Suporte - TI; se o cliente falar fora do escopo, diga para o que você foi feita):";
 
         return $prompt;
     }
